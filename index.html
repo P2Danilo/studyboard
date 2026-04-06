@@ -15,7 +15,7 @@
 <style>
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
-:root{
+:root {
   --bg:#FBF6F0;
   --surface:#FFFFFF;
   --surface2:#F2EBE3;
@@ -24,45 +24,93 @@
   --muted:rgba(44,36,32,0.45);
 
   --rose:#C97B84;
+  --rose-light:rgba(201,123,132,0.13);
+
   --lavender:#9B8EC4;
+  --lavender-light:rgba(155,142,196,0.13);
+
   --gold:#C9A96E;
+  --gold-light:rgba(201,169,110,0.13);
+
   --sage:#7A9E8E;
+  --sage-light:rgba(122,158,142,0.13);
+
   --coral:#E07A5F;
   --sky:#6BAED6;
+  --sky-light:rgba(107,174,214,0.13);
+
+  --radius:12px;
 }
 
-body{
+body {
   font-family:'Mulish',Arial,Helvetica,sans-serif;
   background:var(--bg,#FBF6F0);
   color:var(--text,#2C2420);
+  min-height:100vh;
+  overflow-x:hidden;
 }
 
 /* LOADER */
-#loader{
+#loader {
   position:fixed;
   inset:0;
   background:var(--bg,#FBF6F0);
   display:flex;
+  flex-direction:column;
   align-items:center;
   justify-content:center;
   z-index:999;
+  gap:16px;
+  transition:opacity .4s;
+}
+#loader.hide { opacity:0; pointer-events:none; }
+
+.loader-logo {
+  font-family:'Syne',sans-serif;
+  font-weight:800;
+  font-size:28px;
+}
+.loader-logo span { color:var(--rose); }
+
+/* LOGIN */
+#login-screen {
+  position:fixed;
+  inset:0;
+  background:var(--bg,#FBF6F0);
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+#login-screen.show { display:flex; }
+
+/* HEADER */
+header {
+  background:var(--surface,#fff);
+  border-bottom:1px solid var(--border);
+  padding:0 24px;
+  display:flex;
+  justify-content:space-between;
+  height:64px;
 }
 
 /* BOTONES */
-.btn-new,
-.btn-save{
+.btn-new,.btn-save {
   background:linear-gradient(135deg,var(--rose,#C97B84),var(--lavender,#9B8EC4));
-  color:white;
+  color:#fff;
   border:none;
+  border-radius:8px;
+  padding:10px 20px;
 }
 
-/* MODAL FIX */
-.modal{
+/* MODAL */
+.modal {
   background:var(--surface,#fff);
-  border:1px solid var(--border,rgba(0,0,0,0.1));
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:24px;
 }
 
-/* CARDS FIX */
+/* CARDS (FIX TRANSPARENCIA) */
 .card.c-rose{background:#f8e9eb;}
 .card.c-lavender{background:#eeeafd;}
 .card.c-gold{background:#f6efe2;}
@@ -74,34 +122,42 @@ body{
 
 <body>
 
-<div id="loader">Cargando...</div>
-
-<div id="app" style="display:none;">
-  <h1>StudyBoard funcionando correctamente ✅</h1>
-  <button class="btn-new">Botón correcto</button>
+<div id="loader">
+  <div class="loader-logo">Study<span>Board</span></div>
 </div>
+
+<div id="login-screen"></div>
+<div id="app"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getDatabase } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBAy7FcCSAuEpcVutxE-auPISlKFMHlnbg",
   authDomain: "studyboard-1f074.firebaseapp.com",
+  databaseURL: "https://studyboard-1f074-default-rtdb.firebaseio.com"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getDatabase(app);
+const provider = new GoogleAuthProvider();
 
-onAuthStateChanged(auth, user=>{
-  document.getElementById('loader').style.display='none';
-  document.getElementById('app').style.display='block';
+/* AUTH */
+onAuthStateChanged(auth,user=>{
+  document.getElementById('loader').classList.add('hide');
+  if(user){
+    document.getElementById('app').style.display='block';
+  }else{
+    document.getElementById('login-screen').classList.add('show');
+  }
 });
 
-/* FALLBACK SI FIREBASE FALLA */
+/* FALLBACK LOADER */
 setTimeout(()=>{
-  document.getElementById('loader').style.display='none';
-  document.getElementById('app').style.display='block';
+  document.getElementById('loader').classList.add('hide');
 },3000);
 
 </script>
