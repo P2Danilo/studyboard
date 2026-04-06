@@ -131,6 +131,7 @@ textarea{resize:vertical;min-height:78px;}
 .bsav:hover{opacity:0.88;}
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-thumb{background:rgba(180,150,130,0.3);border-radius:4px;}
+.mob-toggle{display:none;}
 @media(max-width:768px){
   .layout{grid-template-columns:1fr;}
   .side{display:none;}
@@ -142,6 +143,12 @@ textarea{resize:vertical;min-height:78px;}
   .col{width:258px;}
   .lbox{padding:36px 24px;}
   .bnew{font-size:12px;padding:8px 14px;}
+  .mob-toggle{display:block;margin:0 14px 14px;}
+  .mob-btn{width:100%;background:#fff;border:1px solid rgba(180,150,130,0.2);border-radius:10px;padding:13px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-family:'Syne','Arial Black',Arial,sans-serif;font-weight:700;font-size:13px;color:#2C2420;}
+  .mob-arr{font-size:12px;color:rgba(44,36,32,0.45);transition:transform 0.25s;}
+  .mob-arr.open{transform:rotate(180deg);}
+  .mob-body{background:#fff;border:1px solid rgba(180,150,130,0.2);border-top:none;border-radius:0 0 10px 10px;padding:16px;display:none;}
+  .mob-body.open{display:block;}
 }
 </style>
 </head>
@@ -223,6 +230,17 @@ textarea{resize:vertical;min-height:78px;}
       <div class="sidet">Proximos vencimientos</div>
       <div id="ulist"></div>
     </div>
+  </div>
+  <div class="mob-toggle">
+    <button class="mob-btn" onclick="toggleMob()">
+      <span>Proximos vencimientos</span>
+      <span class="mob-arr" id="mobarr">▼</span>
+    </button>
+    <div class="mob-body" id="mobbody">
+      <div id="ulist-mob"></div>
+    </div>
+  </div>
+  <div style="display:none">
   </div>
 </div>
 <div class="ov" id="ov" onclick="ofi(event)">
@@ -324,7 +342,10 @@ function renderUp(){
   const mn=["ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC"];
   const up=Object.entries(items).filter(([,o])=>o.date&&o.status!=="entregado").sort((a,b)=>a[1].date.localeCompare(b[1].date)).slice(0,6);
   if(!up.length){ul.innerHTML=`<div class="semp">Sin vencimientos proximos 🎉</div>`;return;}
-  ul.innerHTML=up.map(([,o])=>{const[y,m,d]=o.date.split("-");return`<div class="ui"><div class="ud ${du(o.date)<0?"ov":""}">${mn[+m-1]}<br>${d}</div><div class="uinfo"><div class="un">${o.title||"Sin titulo"}</div><div class="utp">${emo[o.type]||"📌"} ${o.subject||lbl[o.type]||"Otro"}</div></div></div>`;}).join("");
+  const html=up.map(([,o])=>{const[y,m,d]=o.date.split("-");return`<div class="ui"><div class="ud ${du(o.date)<0?"ov":""}">${mn[+m-1]}<br>${d}</div><div class="uinfo"><div class="un">${o.title||"Sin titulo"}</div><div class="utp">${emo[o.type]||"📌"} ${o.subject||lbl[o.type]||"Otro"}</div></div></div>`;}).join("");
+  ul.innerHTML=html;
+  const mob=document.getElementById("ulist-mob");
+  if(mob)mob.innerHTML=html;
 }
 window.openModal=()=>{eid=null;document.getElementById("mh").textContent="Nueva actividad";["ft","fsub","fd","fdt"].forEach(i=>document.getElementById(i).value="");document.getElementById("fty").value="tarea";document.getElementById("fst").value="pendiente";document.getElementById("ov").classList.add("active");};
 window.ed=(id,e)=>{if(e)e.stopPropagation();eid=id;const o=items[id];if(!o)return;document.getElementById("mh").textContent="Editar actividad";document.getElementById("ft").value=o.title||"";document.getElementById("fsub").value=o.subject||"";document.getElementById("fty").value=o.type||"tarea";document.getElementById("fd").value=o.desc||"";document.getElementById("fdt").value=o.date||"";document.getElementById("fst").value=o.status||"pendiente";document.getElementById("ov").classList.add("active");};
@@ -333,6 +354,12 @@ window.closeModal=()=>{document.getElementById("ov").classList.remove("active");
 window.ofi=e=>{if(e.target===document.getElementById("ov"))window.closeModal();};
 window.saveItem=()=>{const t=document.getElementById("ft").value.trim();if(!t){document.getElementById("ft").focus();return;}const o={title:t,subject:document.getElementById("fsub").value.trim(),type:document.getElementById("fty").value,desc:document.getElementById("fd").value.trim(),date:document.getElementById("fdt").value,status:document.getElementById("fst").value,createdAt:eid?(items[eid]?.createdAt||Date.now()):Date.now()};eid?set(ref(db,"items/"+eid),o):push(ref(db,"items"),o);window.closeModal();};
 document.addEventListener("keydown",e=>{if(e.key==="Escape")window.closeModal();});
+window.toggleMob=()=>{
+  const body=document.getElementById("mobbody");
+  const arr=document.getElementById("mobarr");
+  body.classList.toggle("open");
+  arr.classList.toggle("open");
+};
 </script>
 </body>
 </html>
